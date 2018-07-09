@@ -37,7 +37,7 @@ import           Web.HttpApiData         (ToHttpApiData, toEncodedUrlPiece,
 -- Note that this type substantially changed in 0.12.
 data ServantError =
   -- | The server returned an error response
-    FailureResponse Response
+    FailureResponse (RequestF BS.ByteString) Response
   -- | The body could not be decoded at the expected type
   | DecodeFailure Text Response
   -- | The content-type of the response is not supported

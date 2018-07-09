@@ -133,8 +133,12 @@ performRequest req = do
           status_code = statusCode status
           ourResponse = clientResponseToResponse response
       unless (status_code >= 200 && status_code < 300) $
-        throwError $ FailureResponse ourResponse
+        throwError $ failureResponse req ourResponse
       return ourResponse
+
+failureResponse :: Request -> Response -> ServantError
+failureResponse req =
+  FailureResponse (BSL.toStrict . toLazyByteString <$> req)
 
 performStreamingRequest :: Request -> ClientM StreamingResponse
 performStreamingRequest req = do
@@ -148,7 +152,7 @@ performStreamingRequest req = do
           status_code = statusCode status
       unless (status_code >= 200 && status_code < 300) $ do
         b <- BSL.fromChunks <$> Client.brConsume (Client.responseBody r)
-        throw $ FailureResponse $ clientResponseToResponse r { Client.responseBody = b }
+        throw $ failureResponse req $ clientResponseToResponse r { Client.responseBody = b }
       k (clientResponseToResponse r)
 
 clientResponseToResponse :: Client.Response a -> GenResponse a
